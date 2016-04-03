@@ -1,0 +1,86 @@
+# MaxScale documentation on GitHub:
+# https://github.com/mariadb-corporation/MaxScale/blob/master/Documentation/Documentation-Contents.md
+
+# Global parameters
+#
+# Complete list of configuration options:
+# https://github.com/mariadb-corporation/MaxScale/blob/master/Documentation/Getting-Started/Configuration-Guide.md
+
+[maxscale]
+threads=2
+
+# Server definitions
+#
+# Set the address of the server to the network
+# address of a MySQL server.
+#
+
+{% for ip in galera_cluster_members.split(",") %}
+[server{{ loop.index }}]
+type=server
+address={{ ip }}
+port=3306
+protocol=MySQLBackend
+{% endfor %}
+
+# Monitor for the servers
+#
+# This will keep MaxScale aware of the state of the servers.
+# MySQL Monitor documentation:
+# https://github.com/mariadb-corporation/MaxScale/blob/master/Documentation/Monitors/MySQL-Monitor.md
+
+[Galera Monitor]
+type=monitor
+module=galeramon
+servers={% for ip in galera_cluster_members.split(",") %}
+server{{ loop.index }}
+{%- if not loop.last %},{%- endif %}
+{% endfor %}
+
+user={{ galera_maxscale_user }}
+passwd={{ galera_maxscale_password }}
+
+# Service definitions
+#
+# Service Definition for a read-only service and
+# a read/write splitting service.
+#
+
+[Galera Service]
+type=service
+router=readconnroute
+router_options=synced
+servers={% for ip in galera_cluster_members.split(",") %}
+server{{ loop.index }}
+{%- if not loop.last %},{%- endif %}
+{% endfor %}
+
+user={{ galera_maxscale_user }}
+passwd={{ galera_maxscale_password }}
+
+# This service enables the use of the MaxAdmin interface
+# MaxScale administration guide:
+# https://github.com/mariadb-corporation/MaxScale/blob/master/Documentation/Reference/MaxAdmin.md
+
+[MaxAdmin Service]
+type=service
+router=cli
+
+# Listener definitions for the services
+#
+# These listeners represent the ports the
+# services will listen on.
+#
+
+[Galera Listener]
+type=listener
+service=Galera Service
+protocol=MySQLClient
+port=4306
+socket=/tmp/DB.Cluster
+
+[MaxAdmin Listener]
+type=listener
+service=MaxAdmin Service
+protocol=maxscaled
+port=6603

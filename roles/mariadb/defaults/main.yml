@@ -1,0 +1,7 @@
+---
+
+galera_bind_address: '0.0.0.0'
+galera_cluster_name: 'clusterville'
+galera_maintenance_password: 'defaultmaintenancepassword'
+galera_cluster_user: "replication"
+galera_cluster_password: "defaultreplicationpassword"

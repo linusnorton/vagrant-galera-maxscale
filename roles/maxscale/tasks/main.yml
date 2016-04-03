@@ -1,0 +1,26 @@
+---
+- name: Add MariaDB GPG key
+  apt_key:
+    url: http://downloads.mariadb.com/enterprise/kbha-2yfb/mariadb-maxscale/MariaDB-MaxScale-GPG-KEY
+    state: present
+
+- name: Add MariaDB Maxscale repo
+  apt_repository:
+    repo: 'deb http://downloads.mariadb.com/enterprise/kbha-2yfb/mariadb-maxscale/{{ maxscale_version }}/ubuntu {{ ansible_distribution_release }} main'
+    state: present
+
+- name: Install Maxscale
+  apt:
+    state: present
+    update_cache: yes
+    cache_valid_time: 11400
+    pkg: maxscale
+
+- name: Maxscale configuration file
+  template: src=maxscale.cnf.j2 dest=/etc/maxscale.cnf owner=root group=root mode=0644
+  notify: restart maxscale
+
+- name: Start maxscale
+  service:
+    name: maxscale
+    state: started

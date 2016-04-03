@@ -1,0 +1,18 @@
+#{{ ansible_managed }}
+
+[mysqld]
+
+wsrep_provider="/usr/lib/galera/libgalera_smm.so"
+wsrep_provider_options="gcache.size=2G"
+wsrep_cluster_name="{{ galera_cluster_name }}"
+wsrep_sst_method=rsync
+wsrep_sst_auth={{ galera_cluster_user }}:{{ galera_cluster_password }}
+wsrep_node_name="{{ ansible_fqdn }}"
+wsrep_on=ON
+wsrep_cluster_address=gcomm://{{ galera_cluster_members }}
+
+{% for ipaddr in ansible_all_ipv4_addresses %}
+  {%- if ipaddr in galera_cluster_members.split(",") %}
+wsrep_node_address="{{ ipaddr }}"
+  {%- endif %}
+{%- endfor %}

@@ -1,0 +1,16 @@
+---
+
+- hosts: dev-dbcluster
+  become: yes
+  become_method: sudo
+  roles:
+    - { role: maxscale, tags: maxscale }
+
+- hosts:
+    - dev-db1
+    - dev-db2
+    - dev-db3
+  become: yes
+  become_method: sudo
+  roles:
+    - { role: mariadb, tags: mariadb }

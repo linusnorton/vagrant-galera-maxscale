@@ -1,0 +1,49 @@
+---
+# credit to https://github.com/alexey-medvedchikov/ansible-galera
+
+- name: Add repository key to the system
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: "0xcbcb082a1bb943db"
+
+- name: Install MariaDB repository
+  apt_repository:
+    repo: 'deb http://ftp.osuosl.org/pub/mariadb/repo/10.1/ubuntu {{ ansible_distribution_release }} main'
+    state: present
+
+- name: Install required packages
+  apt:
+    pkg: "{{ item }}"
+    state: present
+    update_cache: yes
+    cache_valid_time: 11400
+  with_items:
+    - mariadb-server
+    - galera
+    - python-mysqldb
+
+- name: Galera configuration file
+  template: src=cluster.cnf.j2 dest=/etc/mysql/conf.d/cluster.cnf owner=root group=root mode=0644
+
+- name: MariaDB configuration file
+  template: src=my.cnf.j2 dest=/etc/mysql/my.cnf owner=root group=root mode=0644
+
+- name: Debian maintenance configuration file
+  template: src=debian.cnf.j2 dest=/etc/mysql/debian.cnf owner=root group=root mode=0644
+
+- name: Stop mysql
+  service:
+    name: mysql
+    state: stopped
+
+- name: Bootstrap cluster on first node
+  shell: galera_new_cluster
+  run_once: true
+
+- name: Start mysql
+  service:
+    name: mysql
+    state: started
+
+- name: Add MaxScale user
+  mysql_user: name={{ galera_maxscale_user }} password={{ galera_maxscale_password }} priv=*.*:ALL state=present host=%
