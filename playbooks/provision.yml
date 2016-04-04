@@ -1,15 +1,12 @@
 ---
 
-- hosts: dev-dbcluster
+- hosts: cluster_proxy
   become: yes
   become_method: sudo
   roles:
     - { role: maxscale, tags: maxscale }
 
-- hosts:
-    - dev-db1
-    - dev-db2
-    - dev-db3
+- hosts: cluster_nodes
   become: yes
   become_method: sudo
   roles:

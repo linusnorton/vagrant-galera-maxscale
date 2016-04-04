@@ -48,7 +48,7 @@ passwd={{ galera_maxscale_password }}
 
 [Galera Service]
 type=service
-router=readconnroute
+router=readwritesplit
 router_options=synced
 servers={% for ip in galera_cluster_members.split(",") %}
 server{{ loop.index }}
